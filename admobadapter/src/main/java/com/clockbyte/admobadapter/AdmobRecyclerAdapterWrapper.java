@@ -18,7 +18,11 @@ package com.clockbyte.admobadapter;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
+import com.clockbyte.admobadapter.expressads.BannerHolder;
+import com.clockbyte.admobadapter.expressads.NativeHolder;
+import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAdView;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
@@ -67,6 +71,7 @@ public class AdmobRecyclerAdapterWrapper
 
     private static final int VIEW_TYPE_AD_CONTENT = 0;
     private static final int VIEW_TYPE_AD_INSTALL = 1;
+    private static final int VIEW_TYPE_AD_BANNER = 2;
 
     private final static int DEFAULT_NO_OF_DATA_BETWEEN_ADS = 10;
     private final static int DEFAULT_LIMIT_OF_ADS = 3;
@@ -96,6 +101,10 @@ public class AdmobRecyclerAdapterWrapper
 
     private int getViewTypeAdInstall(){
         return getViewTypeBiggestSource() + VIEW_TYPE_AD_INSTALL + 1;
+    }
+
+    private int getViewTypeAdBanner(){
+        return VIEW_TYPE_AD_BANNER;
     }
 
     /*
@@ -154,6 +163,16 @@ public class AdmobRecyclerAdapterWrapper
     */
     public void setViewTypeBiggestSource(int viewTypeBiggestSource) {
         this.viewTypeBiggestSource = viewTypeBiggestSource;
+    }
+
+    private BannerAdLayoutContext mBannerAdLayoutContext;
+
+    public BannerAdLayoutContext getBannerAdLayoutContext() {
+        return mBannerAdLayoutContext;
+    }
+
+    public void setBannerAdLayoutContext(BannerAdLayoutContext bannerAdLayoutContext) {
+        mBannerAdLayoutContext = bannerAdLayoutContext;
     }
 
     private NativeAdLayoutContext mContentAdsLayoutContext;
@@ -239,7 +258,7 @@ public class AdmobRecyclerAdapterWrapper
      * i.e. pass EnumSet.of(EAdType.ADVANCED_INSTALLAPP) to show only install app ads
      */
     public AdmobRecyclerAdapterWrapper(Context context, String[] testDevicesId, EnumSet<EAdType> adTypesToShow) {
-        init(context, null, testDevicesId, adTypesToShow);
+        init(context, null, null, testDevicesId, adTypesToShow);
     }
 
     /**
@@ -257,7 +276,7 @@ public class AdmobRecyclerAdapterWrapper
         Collection<String> releaseUnitIds = admobReleaseUnitId==null
                 ? null
                 : Collections.singletonList(admobReleaseUnitId);
-        init(context, releaseUnitIds, null, adTypesToShow);
+        init(context, releaseUnitIds, null, null, adTypesToShow);
     }
 
     /**
@@ -275,7 +294,7 @@ public class AdmobRecyclerAdapterWrapper
      * i.e. pass EnumSet.of(EAdType.ADVANCED_INSTALLAPP) to show only install app ads
      */
     public AdmobRecyclerAdapterWrapper(Context context, Collection<String> admobReleaseUnitIds, EnumSet<EAdType> adTypesToShow) {
-        init(context, admobReleaseUnitIds, null, adTypesToShow);
+        init(context, admobReleaseUnitIds, null, null, adTypesToShow);
     }
 
     /**
@@ -291,10 +310,14 @@ public class AdmobRecyclerAdapterWrapper
      * i.e. pass EnumSet.of(EAdType.ADVANCED_INSTALLAPP) to show only install app ads
      */
     public AdmobRecyclerAdapterWrapper(Context context, String admobReleaseUnitId, String[] testDevicesId, EnumSet<EAdType> adTypesToShow) {
-        init(context, Collections.singletonList(admobReleaseUnitId), testDevicesId, adTypesToShow);
+        init(context, Collections.singletonList(admobReleaseUnitId), null, testDevicesId, adTypesToShow);
     }
 
-    private void init(Context context, Collection<String> admobReleaseUnitIds, String[] testDevicesId, EnumSet<EAdType> adTypesToShow){
+    public AdmobRecyclerAdapterWrapper(Context context, String admobReleaseUnitId, String admobBannerUnitId, String[] testDevicesId, EnumSet<EAdType> adTypesToShow) {
+        init(context, Collections.singletonList(admobReleaseUnitId), Collections.singletonList(admobBannerUnitId), testDevicesId, adTypesToShow);
+    }
+
+    private void init(Context context, Collection<String> admobReleaseUnitIds, Collection<String> admobBannerUnitIds, String[] testDevicesId, EnumSet<EAdType> adTypesToShow){
         setViewTypeBiggestSource(DEFAULT_VIEWTYPE_SOURCE_MAX);
         setNoOfDataBetweenAds(DEFAULT_NO_OF_DATA_BETWEEN_ADS);
         setLimitOfAds(DEFAULT_LIMIT_OF_ADS);
@@ -308,6 +331,8 @@ public class AdmobRecyclerAdapterWrapper
                 adFetcher.addTestDeviceId(testId);
         if(admobReleaseUnitIds!=null)
             adFetcher.setReleaseUnitIds(admobReleaseUnitIds);
+        if(admobBannerUnitIds!=null)
+            adFetcher.setBannerUnitIds(admobBannerUnitIds);
         adFetcher.setAdTypeToFetch(adTypesToShow == null || adTypesToShow.isEmpty()
                 ?  EnumSet.allOf(EAdType.class): adTypesToShow);
         adFetcher.addListener(this);
@@ -329,8 +354,11 @@ public class AdmobRecyclerAdapterWrapper
             NativeContentAdView lvi2 = (NativeContentAdView) viewHolder.itemView;
             NativeContentAd ad2 = (NativeContentAd) getItem(position);
             getContentAdsLayoutContext().bind(lvi2, ad2);
-        }
-        else{
+        } else if (itemViewType == getViewTypeAdBanner()) {
+            FrameLayout frameLayout = (FrameLayout) viewHolder.itemView;
+            AdView adView = (AdView) getItem(position);
+            getBannerAdLayoutContext().bind(frameLayout, adView);
+        } else{
             int origPos = AdapterCalculator.getOriginalContentPosition(position,
                     adFetcher.getFetchedAdsCount(), mAdapter.getItemCount());
             mAdapter.onBindViewHolder(viewHolder, origPos);
@@ -341,8 +369,9 @@ public class AdmobRecyclerAdapterWrapper
     public final RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == getViewTypeAdContent() || viewType == getViewTypeAdInstall()) {
             return new NativeHolder(onCreateItemView(parent, viewType));
-        }
-        else{
+        } else if (viewType == getViewTypeAdBanner()) {
+            return new BannerHolder(onCreateItemView(parent, viewType));
+        } else{
             return mAdapter.onCreateViewHolder(parent, viewType);
         }
     }
@@ -352,6 +381,8 @@ public class AdmobRecyclerAdapterWrapper
                 return getInstallAdsLayoutContext().inflateView(parent);
         else if (viewType == getViewTypeAdContent())
                 return getContentAdsLayoutContext().inflateView(parent);
+        else if (viewType == getViewTypeAdBanner())
+                return getBannerAdLayoutContext().inflateView(parent);
         else return null;
     }
 
@@ -392,6 +423,9 @@ public class AdmobRecyclerAdapterWrapper
         if (AdapterCalculator.canShowAdAtPosition(position, adFetcher.getFetchedAdsCount())) {
             int adPos = AdapterCalculator.getAdIndex(position);
             return adFetcher.getAdForIndex(adPos);
+        } else if (AdapterCalculator.canShowBannerAdAtPosition(position)) {
+            int adPos = AdapterCalculator.getAdIndex(position);
+            return adFetcher.getBannerAdForIndex(adPos);
         }
         else return null;
     }
@@ -407,6 +441,10 @@ public class AdmobRecyclerAdapterWrapper
             int adPos = AdapterCalculator.getAdIndex(position);
             NativeAd ad = adFetcher.getAdForIndex(adPos);
             return ad instanceof NativeAppInstallAd ? getViewTypeAdInstall() : getViewTypeAdContent();
+        } else if (adFetcher.hasBannerFallback() && AdapterCalculator.canShowBannerAdAtPosition(position)) {
+            int adPos = AdapterCalculator.getAdIndex(position);
+            AdView ad = adFetcher.getBannerAdForIndex(adPos);
+            return getViewTypeAdBanner();
         } else {
             int origPos = AdapterCalculator.getOriginalContentPosition(position,
                     adFetcher.getFetchedAdsCount(), mAdapter.getItemCount());

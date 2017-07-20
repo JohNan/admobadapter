@@ -22,6 +22,8 @@ import android.util.SparseArray;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAdOptions;
 import com.google.android.gms.ads.formats.NativeAppInstallAd;
@@ -52,6 +54,7 @@ public class AdmobFetcher extends AdmobFetcherBase{
 
     private EnumSet<EAdType> adTypeToFetch = EnumSet.allOf(EAdType.class);
     private final List<String> mAdmobReleaseUnitIds = new ArrayList<>();
+    private final List<String> mBannerUnitIds = new ArrayList<>();
 
     /**
      * Gets enumset which sets which of ad types this Fetcher should load
@@ -88,6 +91,23 @@ public class AdmobFetcher extends AdmobFetcherBase{
 
         ensurePrefetchAmount(); // Make sure we have enough pre-fetched ads
         return adNative;
+    }
+
+    public AdView getBannerAdForIndex(final int index) {
+        AdView adView = null;
+        if(index >= 0)
+            adView = (AdView) adMapAtIndex.get(index);
+
+        if (adView == null) {
+            adView = new AdView(mContext.get());
+            adView.setAdSize(AdSize.SMART_BANNER);
+            adView.setAdUnitId(mBannerUnitIds.get(0));
+            adView.loadAd(getAdRequest());
+
+            adMapAtIndex.put(index, adView);
+        }
+
+        return adView;
     }
 
     @Override
@@ -261,5 +281,16 @@ public class AdmobFetcher extends AdmobFetcherBase{
             throw new RuntimeException("Currently only supports one unit id.");
 
         mAdmobReleaseUnitIds.addAll(admobReleaseUnitIds);
+    }
+
+    public void setBannerUnitIds(Collection<String> bannerUnitIds) {
+        if(bannerUnitIds.size() > 1)
+            throw new RuntimeException("Currently only supports one banner unit id.");
+
+        mBannerUnitIds.addAll(bannerUnitIds);
+    }
+
+    public boolean hasBannerFallback() {
+        return mBannerUnitIds.size() > 0;
     }
 }

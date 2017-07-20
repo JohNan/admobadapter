@@ -146,6 +146,13 @@ public class AdmobAdapterCalculator {
         return isAdPosition(position) && isAdAvailable(position, fetchedAdsCount);
     }
 
+   public boolean canShowBannerAdAtPosition(int position) {
+
+        // Is this a valid position for an ad?
+        // Is an ad for this position available?
+        return isAdPosition(position) && isBannerAdAvailable(position);
+    }
+
     /**
      * Gets the ad index for this adapter position within the list of currently fetched ads.
      *
@@ -188,6 +195,13 @@ public class AdmobAdapterCalculator {
         int firstAdPos = getOffsetValue();
 
         return position >= firstAdPos && adIndex >= 0 && adIndex < getLimitOfAds() && adIndex < fetchedAdsCount;
+    }
+
+    public boolean isBannerAdAvailable(int position) {
+        int adIndex = getAdIndex(position);
+        int firstAdPos = getOffsetValue();
+
+        return position >= firstAdPos && adIndex >= 0 && adIndex < getLimitOfAds();
     }
 
     /**
