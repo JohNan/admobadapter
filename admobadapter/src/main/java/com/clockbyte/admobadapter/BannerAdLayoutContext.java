@@ -20,7 +20,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.formats.NativeAdView;
 
 /**
  * Created by FILM on 07.08.2016.
@@ -45,12 +44,12 @@ public abstract class BannerAdLayoutContext {
 
     public abstract void bind(FrameLayout frameLayout, AdView adView);
 
-    public NativeAdView inflateView(ViewGroup root) throws IllegalArgumentException{
+    public ViewGroup inflateView(ViewGroup root) throws IllegalArgumentException{
         if(root == null) throw new IllegalArgumentException("root should be not null");
         // Inflate a layout and add it to the parent ViewGroup.
         LayoutInflater inflater = (LayoutInflater) root.getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        return (NativeAdView) inflater
+        return (ViewGroup) inflater
                 .inflate(getAdLayoutId(), root, false);
     }
 }

@@ -370,7 +370,7 @@ public class AdmobRecyclerAdapterWrapper
         if (viewType == getViewTypeAdContent() || viewType == getViewTypeAdInstall()) {
             return new NativeHolder(onCreateItemView(parent, viewType));
         } else if (viewType == getViewTypeAdBanner()) {
-            return new BannerHolder(onCreateItemView(parent, viewType));
+            return new BannerHolder(getBannerAdLayoutContext().inflateView(parent));
         } else{
             return mAdapter.onCreateViewHolder(parent, viewType);
         }
@@ -381,8 +381,6 @@ public class AdmobRecyclerAdapterWrapper
                 return getInstallAdsLayoutContext().inflateView(parent);
         else if (viewType == getViewTypeAdContent())
                 return getContentAdsLayoutContext().inflateView(parent);
-        else if (viewType == getViewTypeAdBanner())
-                return getBannerAdLayoutContext().inflateView(parent);
         else return null;
     }
 
