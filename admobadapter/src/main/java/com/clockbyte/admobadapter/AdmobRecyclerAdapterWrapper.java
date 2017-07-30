@@ -104,7 +104,7 @@ public class AdmobRecyclerAdapterWrapper
     }
 
     private int getViewTypeAdBanner(){
-        return VIEW_TYPE_AD_BANNER;
+        return getViewTypeBiggestSource() + VIEW_TYPE_AD_BANNER + 1;
     }
 
     /*
