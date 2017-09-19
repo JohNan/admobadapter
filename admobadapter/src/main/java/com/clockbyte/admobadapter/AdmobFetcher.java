@@ -93,6 +93,14 @@ public class AdmobFetcher extends AdmobFetcherBase{
         return adNative;
     }
 
+    public synchronized Object getObjectForIndex(final int index) {
+        Object object = null;
+        if(index >= 0)
+            object = adMapAtIndex.get(index);
+
+        return object;
+    }
+
     public AdView getBannerAdForIndex(final int index) {
         AdView adView = null;
         if(index >= 0)
