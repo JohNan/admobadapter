@@ -436,12 +436,12 @@ public class AdmobRecyclerAdapterWrapper
     @Override
     public int getItemViewType(int position) {
         Object ad = null;
-        if (adFetcher.hasBannerFallback() && AdapterCalculator.canShowBannerAdAtPosition(position)) {
-            int adPos = AdapterCalculator.getAdIndex(position);
-            ad = adFetcher.getBannerAdForIndex(adPos);
-        } else if (AdapterCalculator.canShowAdAtPosition(position, adFetcher.getFetchedAdsCount())) {
+        if (AdapterCalculator.canShowAdAtPosition(position, adFetcher.getFetchedAdsCount())) {
             int adPos = AdapterCalculator.getAdIndex(position);
             ad = adFetcher.getAdForIndex(adPos);
+        } else if (adFetcher.hasBannerFallback() && AdapterCalculator.canShowBannerAdAtPosition(position)) {
+            int adPos = AdapterCalculator.getAdIndex(position);
+            ad = adFetcher.getBannerAdForIndex(adPos);
         }
 
         if (ad instanceof AdView) {
