@@ -76,46 +76,41 @@ public class AdmobFetcher extends AdmobFetcherBase{
      * @return the native ad in the list
      * @see #getFetchedAdsCount()
      */
-    public synchronized NativeAd getAdForIndex(final int index) {
-        NativeAd adNative = null;
-        if(index >= 0)
-            adNative = (NativeAd) adMapAtIndex.get(index);
-
-        if (adNative == null && mPrefetchedAdList.size() > 0) {
-            adNative = mPrefetchedAdList.remove(0);
-
-            if (adNative != null) {
-                adMapAtIndex.put(index, adNative);
-            }
-        }
-
-        ensurePrefetchAmount(); // Make sure we have enough pre-fetched ads
-        return adNative;
-    }
-
-    public synchronized Object getObjectForIndex(final int index) {
+    public synchronized Object getAdForIndex(final int index) {
         Object object = null;
         if(index >= 0)
             object = adMapAtIndex.get(index);
 
+        if (object == null && mPrefetchedAdList.size() > 0) {
+            NativeAd adNative = mPrefetchedAdList.remove(0);
+
+            if (adNative != null) {
+                adMapAtIndex.put(index, adNative);
+            }
+
+            return adNative;
+        }
+
+        ensurePrefetchAmount(); // Make sure we have enough pre-fetched ads
         return object;
     }
 
-    public AdView getBannerAdForIndex(final int index) {
-        AdView adView = null;
+    public synchronized Object getBannerAdForIndex(final int index) {
+        Object object = null;
         if(index >= 0)
-            adView = (AdView) adMapAtIndex.get(index);
+            object = adMapAtIndex.get(index);
 
-        if (adView == null) {
-            adView = new AdView(mContext.get());
+        if (object == null) {
+            AdView adView = new AdView(mContext.get());
             adView.setAdSize(AdSize.SMART_BANNER);
             adView.setAdUnitId(mBannerUnitIds.get(0));
             adView.loadAd(getAdRequest());
 
             adMapAtIndex.put(index, adView);
+            return adView;
         }
 
-        return adView;
+        return object;
     }
 
     @Override
