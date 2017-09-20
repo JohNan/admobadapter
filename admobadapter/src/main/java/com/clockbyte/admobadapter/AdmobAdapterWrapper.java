@@ -17,14 +17,16 @@ package com.clockbyte.admobadapter;
 
 import android.content.Context;
 import android.database.DataSetObserver;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import com.google.android.gms.ads.formats.*;
+import com.google.android.gms.ads.formats.NativeAd;
+import com.google.android.gms.ads.formats.NativeAppInstallAd;
+import com.google.android.gms.ads.formats.NativeAppInstallAdView;
+import com.google.android.gms.ads.formats.NativeContentAd;
+import com.google.android.gms.ads.formats.NativeContentAdView;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -397,7 +399,7 @@ public class AdmobAdapterWrapper extends BaseAdapter implements AdmobFetcherBase
     public int getItemViewType(int position) {
         if (AdapterCalculator.canShowAdAtPosition(position, adFetcher.getFetchedAdsCount())) {
             int adPos = AdapterCalculator.getAdIndex(position);
-            NativeAd ad = adFetcher.getAdForIndex(adPos);
+            NativeAd ad = (NativeAd) adFetcher.getAdForIndex(adPos);
             return ad instanceof NativeAppInstallAd ? getViewTypeAdInstall() : getViewTypeAdContent();
         } else {
             int origPos = AdapterCalculator.getOriginalContentPosition(position,
