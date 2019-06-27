@@ -21,7 +21,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.clockbyte.admobadapter.expressads.BannerHolder;
-import com.clockbyte.admobadapter.expressads.NativeHolder;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.ads.formats.NativeAdView;
